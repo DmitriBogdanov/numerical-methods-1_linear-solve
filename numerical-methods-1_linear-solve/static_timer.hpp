@@ -4,7 +4,8 @@
 
 
 
-// Ќебольшой класс дл€ замера времени
+// # StaticTimer #
+// Small class used for time measurements, fully static aka does not require creating local instances
 struct StaticTimer {
 	using Clock = std::chrono::steady_clock;
 	using Milliseconds = std::chrono::milliseconds;
@@ -15,10 +16,10 @@ struct StaticTimer {
 
 	inline static unsigned long long elapsed() {
 		return std::chrono::duration_cast<Milliseconds>(Clock::now() - _start_timepoint).count();
-			// врем€ в мс с последнего вызова StaticTimer::start() 
+			// time since last StaticTimer::start() call in ms 
 	}
 
 private:
 	inline static Clock::time_point _start_timepoint = StaticTimer::Clock::now();
-		// 'inline static' требует C++17
+		// 'inline static' requires C++17
 };
