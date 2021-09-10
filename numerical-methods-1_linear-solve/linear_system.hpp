@@ -8,23 +8,51 @@
 // Class that handles general functionality of a linear system, parses, prints, calculates solution residuals and etc
 template<typename T>
 class LinearSystem {
-protected:
-	CMatrix<T> _matrix;
+	CMatrix<T> _matrix; // square
+	CMatrix<T> _column;
+		// square matrix and column are separated for the purpose of easier substitution when
+		// checking solutions and calculating residues
 
 public:
-	// Fills matrix based on given file
-	explicit LinearSystem(const std::string& filepath) {
-		_matrix.parse_from_file(filepath);
+	// Initializes system based on (n, n + 1) matrix
+	LinearSystem(const CMatrix<T>& matrix) {
+		// Ensure correct matrix dimensions
+		if (matrix.cols != matrix.rows + 1)
+			throw std::runtime_error("ERROR: Cannot create linear system with dimensions (" +
+				std::to_string(matrix.rows) + ", " + std::to_string(matrix.cols) + ").");
+
+		// Fill square matrix and column
+		const size_t N = matrix.rows;
+		_matrix.allocate_for_size(N, N);
+		_column.allocate_for_size(N, 1);
+
+		
+		for (size_t i = 0; i < N; ++i) {
+			memcpy(_matrix[i], matrix[i], sizeof(T) * N); // copy N elements at once to the square matrix
+			_column[i][0] = matrix[i][matrix.cols - 1]; // copy last column to _column
+		}
 	}
 
 	// Print matrix to console
 	void print() const {
-		// Unlike _matrix.print() last column is visually separated 
+		// Last column is visually separated 
 		for (size_t i = 0; i < _matrix.rows; ++i) {
 			std::cout << "[ ";
-			for (size_t j = 0; j < _matrix.cols - 1; ++j) std::cout << std::setw(10) << _matrix[i][j] << " ";
-			std::cout << "|" << std::setw(10) << _matrix[i][_matrix.cols - 1] << " ]\n";
+			for (size_t j = 0; j < _matrix.cols; ++j) std::cout << std::setw(10) << _matrix[i][j] << " ";
+			std::cout << "|" << std::setw(10) << _column[i][0] << " ]\n";
 		}
+	}
+
+	T residual_cubic(const CMatrix<T> &solution) {
+		// Substitute given solution and find resulting column
+		CMatrix<T> column = _matrix * solution;
+
+		// Find difference between calculated column and original column
+		for (size_t i = 0; i < _matrix.rows; ++i)
+			column[i][0] -= _column[i][0];
+
+		// Return octahedric norm
+		return column.norm_cubic();
 	}
 };
 

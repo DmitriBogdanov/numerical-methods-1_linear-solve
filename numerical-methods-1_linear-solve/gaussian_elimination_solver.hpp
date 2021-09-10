@@ -1,21 +1,25 @@
 #pragma once
 
-#include "linear_system.hpp"
+#include "cmatrix.hpp"
 
 
  
 template<typename T>
-class GaussianEliminationSolver : public LinearSystem<T> {
-	using LinearSystem<T>::_matrix;
-		// allows us to use '_matrix' insted of writing 'LinearSystem<T>::_matrix' or 'this->_matrix' every time
+class GaussianEliminationSolver {
+	CMatrix<T> _matrix;
 
 public:
-	// Fills matrix based on given file
-	explicit GaussianEliminationSolver(const std::string &filepath) :
-		LinearSystem<T>(filepath)
-	{}
+	// Creates solver for passed linear system
+	GaussianEliminationSolver(const CMatrix<T> &matrix) {
+		// Ensure correct matrix dimensions
+		if (matrix.cols != matrix.rows + 1)
+			throw std::runtime_error("ERROR: Cannot create linear system with dimensions (" +
+				std::to_string(matrix.rows) + ", " + std::to_string(matrix.cols) + ").");
 
-	CMatrix<T> solve_through_gaussian_elimination() {
+		_matrix = matrix;
+	}
+
+	CMatrix<T> solve() {
 		this->gauss_forward_elimination();
 
 		this->gauss_backward_elimination();
