@@ -4,6 +4,16 @@
 #include "linear_system.hpp"
 #include "gaussian_elimination_solver.hpp"
 
+#ifdef _DEBUG
+#define CHECK_MEMORY
+#endif
+
+#ifdef CHECK_MEMORY
+#include <crtdbg.h>
+#define _CRTDBG_MAP_ALLOC
+#define new new (_NORMAL_BLOCK, __FILE__, __LINE__)
+#endif
+
 
 
 // Parse config and return input/output filepaths
@@ -54,6 +64,11 @@ CMatrix<T> solve_throught_gaussian_elimination(const CMatrix<T>& matrix) {
 /// Solve given system through QR-decomposition
 
 int main(int argc, char** argv) {
+	#ifdef CHECK_MEMORY
+	_CrtMemState _ms;
+	_CrtMemCheckpoint(&_ms);
+	#endif
+
 	try {
 		// Parse config file
 		const auto [ inputFilepath, outputFilepath ] = parse_config(); // legal since C++17
@@ -111,6 +126,10 @@ int main(int argc, char** argv) {
 	catch (const std::runtime_error& err) {
 		std::cerr << err.what() << std::endl;
 	}
+
+	#ifdef CHECK_MEMORY
+	_CrtMemDumpAllObjectsSince(&_ms);
+	#endif
 
 	return 0;
 }
