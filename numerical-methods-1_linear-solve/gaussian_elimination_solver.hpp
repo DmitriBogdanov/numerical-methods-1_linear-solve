@@ -1,6 +1,7 @@
 #pragma once
 
 #include "cmatrix.hpp"
+#include "math_helpers.hpp"
 
 
  
@@ -39,7 +40,7 @@ private:
 			if (leadingRow != k) _matrix.swap_rows(leadingRow, k);
 
 			// If the diagonal element of a leading row is zero, matrix is singular => throw
-			if (_matrix[k][k] == static_cast<T>(0))
+			if (isZero(_matrix[k][k]))
 				throw std::runtime_error("ERROR: Could not solve the system with singular matrix");
 
 			// Set diagonal element to 1 by multiplying its row
@@ -55,10 +56,12 @@ private:
 	}
 
 	void gauss_backward_elimination() {
-		// Go backwards untill our matrix is diagonal
+		// Go backwards until our matrix is diagonal
 		for (size_t k = _matrix.rows - 1; k > 0; --k)
-			for (size_t i = 1; i <= k; ++i)
-				this->add_to_row(k - i, k, - _matrix[k - i][k]);
+			for (size_t i = 1; i <= k; ++i) {
+				const T factor = _matrix[k - i][k];
+				for (size_t j = k; j <= _matrix.cols; ++j) _matrix[k - i][j] -= _matrix[k][j] * factor;
+			}
 	}
 
 	void add_to_row(size_t destRow, size_t sourceRow, T factor) {

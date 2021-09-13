@@ -3,6 +3,7 @@
 #include "static_timer.hpp"
 #include "linear_system.hpp"
 #include "gaussian_elimination_solver.hpp"
+#include "qr_decomposition_solver.hpp"
 
 #ifdef _DEBUG
 #define CHECK_MEMORY
@@ -17,6 +18,8 @@
 
 
 // Parse config and return input/output filepaths
+// @return 1 => input filepath
+// @return 2 => output filepath
 std::tuple<std::string, std::string> parse_config() {
 	// Parse config file
 	std::string inputFilepath;
@@ -62,6 +65,30 @@ CMatrix<T> solve_throught_gaussian_elimination(const CMatrix<T>& matrix) {
 }
 
 /// Solve given system through QR-decomposition
+template<typename T>
+CMatrix<T> solve_through_QR_decomposition(const CMatrix<T>& matrix) {
+	std::cout << "Method -> QR decomposition\n" << "Type   -> " <<
+		typeid(T).name() << "\n>>> Solving...\n";
+
+	QRDecompositionSolver solver(matrix);
+
+	StaticTimer::start();
+	const auto [ solution, Q, R ] = solver.solve();
+	const auto elapsed = StaticTimer::elapsed();
+
+	std::cout << ">>> Solved in " << elapsed << " ms\n\n";
+	std::cout << "Q = \n";
+	Q.print();
+	std::cout << "R = \n";
+	R.print();
+
+	std::cout << "Q^T Q = \n";
+	(Q.get_transposed() * Q).print();
+	std::cout << "Q R = \n";
+	(Q * R).print();
+
+	return solution;
+}
 
 int main(int argc, char** argv) {
 	#ifdef CHECK_MEMORY
@@ -92,6 +119,8 @@ int main(int argc, char** argv) {
 		// Solve through various methods
 		const auto solutionGaussianDouble = solve_throught_gaussian_elimination(doubleMatrix);
 		const auto solutionGaussianFloat = solve_throught_gaussian_elimination(floatMatrix);
+		const auto solutionQRDouble = solve_through_QR_decomposition(doubleMatrix);
+		const auto solutionQRFloat = solve_through_QR_decomposition(floatMatrix);
 		
 		// Print solutions to console
 		if (supressMatrixPrinting) std::cout << "[ Matrix output supressed due to large size ]\n";
@@ -101,6 +130,12 @@ int main(int argc, char** argv) {
 
 			std::cout << "Solution 2 // Gaussian elimination // float\n";
 			solutionGaussianFloat.print();
+
+			std::cout << "Solution 3 // QR Decomposition // double\n";
+			solutionQRDouble.print();
+
+			std::cout << "Solution 4 // QR Decomposition // float\n";
+			solutionQRFloat.print();
 		}
 
 		// Save solutions to files
@@ -120,6 +155,18 @@ int main(int argc, char** argv) {
 		outFile << "Solution:\n";
 		for (size_t i = 0; i < solutionGaussianFloat.rows; ++i) outFile << solutionGaussianFloat[i][0] << '\n';
 		outFile << "\nResidual (cubic norm):\n" << floatSystem.residual_cubic(solutionGaussianFloat);
+		outFile.close();
+
+		outFile.open(pathWithoutExtension + "[QRDecomposition]{double}" + extension);
+		outFile << "Solution:\n";
+		for (size_t i = 0; i < solutionQRDouble.rows; ++i) outFile << solutionQRDouble[i][0] << '\n';
+		outFile << "\nResidual (cubic norm):\n" << doubleSystem.residual_cubic(solutionQRDouble);
+		outFile.close();
+
+		outFile.open(pathWithoutExtension + "[QRDecomposition]{float}" + extension);
+		outFile << "Solution:\n";
+		for (size_t i = 0; i < solutionQRFloat.rows; ++i) outFile << solutionQRFloat[i][0] << '\n';
+		outFile << "\nResidual (cubic norm):\n" << floatSystem.residual_cubic(solutionQRFloat);
 		outFile.close();
 	}
 	// If caught any errors, show error message

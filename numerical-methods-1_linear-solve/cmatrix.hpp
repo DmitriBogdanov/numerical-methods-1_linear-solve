@@ -90,6 +90,10 @@ public:
 		delete[] _data;
 	}
 
+	// Const references are used as 'getters' for the purpose of beauty
+	const size_t& rows;
+	const size_t& cols;
+
 	CMatrix<T>& operator= (const CMatrix<T>& other) {;
 		this->allocate_for_size(other._rows, other._cols);
 
@@ -105,28 +109,6 @@ public:
 
 	const T* operator[] (size_t i) const {
 		return _data[i];
-	}
-
-	// Const references are used as 'getters' for the purpose of beauty
-	const size_t &rows;
-	const size_t &cols;
-
-	CMatrix<T> operator* (const CMatrix<T>& other) {
-		if (_cols != other._rows)
-			throw std::runtime_error("ERROR: Matrix multipliation impossible for given dimensions");
-
-		CMatrix<T> result(_rows, other._cols);
-		result.fill_with_zeroes();
-
-		for (size_t i = 0; i < _rows; ++i)
-			for (size_t k = 0; k < _cols; ++k)
-				for (size_t j = 0; j < other._cols; ++j)
-					result[i][j] += _data[i][k] * other._data[k][j];
-					// note that naive loop order would be [i]->[j]->[k], swapping [k] and [j]
-					// loops reduces the number of cache misses since we access contiguously
-					// stored elements in the inner-most loop
-
-		return result;
 	}
 
 	void print() const {
@@ -153,6 +135,42 @@ public:
 
 		// Read matrix elements, since it's stored contiguously in memory we only need 1 loop
 		for (size_t i = 0; i < _rows * _cols; ++i) inFile >> _data[0][i];
+	}
+
+	CMatrix<T> operator* (const CMatrix<T>& other) const {
+		if (_cols != other._rows)
+			throw std::runtime_error("ERROR: Matrix multipliation impossible for given dimensions");
+
+		CMatrix<T> result(_rows, other._cols);
+		result.fill_with_zeroes();
+
+		for (size_t i = 0; i < _rows; ++i)
+			for (size_t k = 0; k < _cols; ++k)
+				for (size_t j = 0; j < other._cols; ++j)
+					result[i][j] += _data[i][k] * other._data[k][j];
+		// note that naive loop order would be [i]->[j]->[k], swapping [k] and [j]
+		// loops reduces the number of cache misses since we access contiguously
+		// stored elements in the inner-most loop
+
+		return result;
+	}
+
+	CMatrix<T> get_transposed() const { // NORE: constructs new matrix, does not modify the original one
+		CMatrix<T> transposed(_cols, _rows);
+
+		for (size_t i = 0; i < _rows; ++i)
+			for (size_t j = 0; j < _cols; ++j)
+				transposed[i][j] = _data[j][i];
+
+		return transposed;
+	}
+
+	CMatrix<T>& transpose_square() {
+		for (size_t i = 0; i < _rows; ++i)
+			for (size_t j = i; j < _cols; ++j)
+				std::swap(_data[i][j], _data[j][i]);
+
+		return *this;
 	}
 
 	void swap_rows(size_t row1, size_t row2) {

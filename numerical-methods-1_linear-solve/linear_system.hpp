@@ -15,7 +15,7 @@ class LinearSystem {
 
 public:
 	// Initializes system based on (n, n + 1) matrix
-	LinearSystem(const CMatrix<T>& matrix) {
+	LinearSystem(const CMatrix<T> &matrix) {
 		// Ensure correct matrix dimensions
 		if (matrix.cols != matrix.rows + 1)
 			throw std::runtime_error("ERROR: Cannot create linear system with dimensions (" +
@@ -31,6 +31,17 @@ public:
 			memcpy(_matrix[i], matrix[i], sizeof(T) * N); // copy N elements at once to the square matrix
 			_column[i][0] = matrix[i][matrix.cols - 1]; // copy last column to _column
 		}
+	}
+
+	// Initializes system based on (n, n) matrix and a (n, 1) column
+	LinearSystem(const CMatrix<T> &A, const CMatrix<T> &b) {
+		// Ensure correct matrix dimensions
+		if (A.cols != A.rows)
+			throw std::runtime_error("ERROR: Cannot create linear system with dimensions (" +
+				std::to_string(A.rows) + ", " + std::to_string(A.cols) + ").");
+
+		_matrix = A;
+		_column = b;
 	}
 
 	// Print matrix to console
