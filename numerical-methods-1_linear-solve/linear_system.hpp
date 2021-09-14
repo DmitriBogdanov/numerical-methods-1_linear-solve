@@ -65,5 +65,17 @@ public:
 		// Return octahedric norm
 		return column.norm_cubic();
 	}
+
+	T residual_octahedral(const CMatrix<T>& solution) const {
+		// Substitute given solution and find resulting column
+		CMatrix<T> column = _matrix * solution;
+
+		// Find difference between calculated column and original column
+		for (size_t i = 0; i < _matrix.rows; ++i)
+			column[i][0] -= _column[i][0];
+
+		// Return octahedric norm
+		return column.norm_octahedral();
+	}
 };
 

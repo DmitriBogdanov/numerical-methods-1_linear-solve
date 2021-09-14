@@ -228,4 +228,20 @@ public:
 
 		return maxSum;
 	}
+
+	T norm_octahedral() const {
+		// Cubic norm is max_i { SUM_j |matrix[i][j]|}
+		T maxSum(0);
+
+		// Go over each row calculating SUM_j |matrix[i][j]|, select max_i
+		for (size_t j = 0; j < _cols; ++j) {
+			T sum(0);
+
+			for (size_t i = 0; i < _rows; ++i) sum += std::abs(_data[i][j]);
+
+			if (sum > maxSum) maxSum = sum;
+		}
+
+		return maxSum;
+	}
 };
