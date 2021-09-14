@@ -32,6 +32,28 @@ public:
 		return solution;
 	}
 
+	// When we need to solve multiple systems it's better to reset matrix without reallocating the entire object
+	void reset_matrix(const CMatrix<T> &matrix) {
+		_matrix = matrix;
+	}
+
+	void add_disturbance(T magnitude) {
+		// Add rand[-magnitude, +magnitude] elementwise to the last column 
+		for (size_t i = 0; i < _matrix.rows; ++i) {
+			
+			const T randCoef = static_cast<T>(rand()) / RAND_MAX * 2 - 1; // random value in [-1, 1] range
+			_matrix[i][_matrix.cols - 1] += magnitude * randCoef;
+		}
+	}
+
+	CMatrix<T> get_b() const {
+		// Returns last column as its own object
+		CMatrix<T> b(_matrix.rows, 1);
+		for (size_t i = 0; i < _matrix.rows; ++i) b[i][0] = _matrix[i][_matrix.cols - 1];
+
+		return b;
+	}
+
 private:
 	void gauss_forward_elimination() {
 		for (size_t k = 0; k < _matrix.rows; ++k) {

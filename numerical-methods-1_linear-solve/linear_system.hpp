@@ -54,7 +54,7 @@ public:
 		}
 	}
 
-	T residual_cubic(const CMatrix<T> &solution) {
+	T residual_cubic(const CMatrix<T> &solution) const {
 		// Substitute given solution and find resulting column
 		CMatrix<T> column = _matrix * solution;
 

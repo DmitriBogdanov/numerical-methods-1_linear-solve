@@ -94,8 +94,9 @@ public:
 	const size_t& rows;
 	const size_t& cols;
 
-	CMatrix<T>& operator= (const CMatrix<T>& other) {;
-		this->allocate_for_size(other._rows, other._cols);
+	CMatrix<T>& operator= (const CMatrix<T>& other) {
+		// No need to reallocate memory if size does not change
+		if (_rows != other._rows || _cols != other._cols) this->allocate_for_size(other._rows, other._cols);
 
 		// Copy data a single contiguous chunk
 		memcpy(_data[0], other._data[0], sizeof(T) * rows * cols);
@@ -112,13 +113,20 @@ public:
 	}
 
 	void print() const {
-		for (size_t i = 0; i < _rows; ++i) {
-			std::cout << "[ ";
-			for (size_t j = 0; j < _cols; ++j) std::cout << std::setw(10) << _data[i][j] << " ";
-			std::cout << " ]\n";
+		constexpr size_t MAX_DISPLAYABLE_SIZE = 8; // if any of matrix dimensions is larger than that console output is supressed
+		
+		if (_rows > MAX_DISPLAYABLE_SIZE || _cols > MAX_DISPLAYABLE_SIZE) {
+			std::cout << "[ matrix output supress due to large size ]\n";
+			return;
 		}
 
-		std::cout << std::endl;
+		constexpr std::streamsize SETW_ALIGNMENT = 14;
+
+		for (size_t i = 0; i < _rows; ++i) {
+			std::cout << "[ ";
+			for (size_t j = 0; j < _cols; ++j) std::cout << std::setw(SETW_ALIGNMENT) << _data[i][j] << " ";
+			std::cout << " ]\n";
+		}
 	}
 
 	void parse_from_file(const std::string & filepath) {
@@ -135,6 +143,26 @@ public:
 
 		// Read matrix elements, since it's stored contiguously in memory we only need 1 loop
 		for (size_t i = 0; i < _rows * _cols; ++i) inFile >> _data[0][i];
+	}
+
+	CMatrix<T> operator+ (const CMatrix<T>& other) const {
+		if (_rows != other._rows || _cols != other._cols)
+			throw std::runtime_error("ERROR: Matrix multipliation impossible for given dimensions");
+
+		CMatrix<T> result(_rows, _cols);
+		for (size_t k = 0; k < _rows * _cols; ++k) result._data[0][k] = _data[0][k] + other._data[0][k];
+
+		return result;
+	}
+
+	CMatrix<T> operator- (const CMatrix<T>& other) const {
+		if (_rows != other._rows || _cols != other._cols)
+			throw std::runtime_error("ERROR: Matrix multipliation impossible for given dimensions");
+
+		CMatrix<T> result(_rows, _cols);
+		for (size_t k = 0; k < _rows * _cols; ++k) result._data[0][k] = _data[0][k] - other._data[0][k];
+
+		return result;
 	}
 
 	CMatrix<T> operator* (const CMatrix<T>& other) const {
