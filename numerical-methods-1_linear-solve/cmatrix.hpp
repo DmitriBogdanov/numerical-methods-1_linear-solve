@@ -3,6 +3,7 @@
 #include <type_traits> // std::is_arithmetic<T> is used to ensure matrix elements are of a numeric type
 #include <stdexcept> // std::runtime_error
 #include <cstring> // memcpy() and memmove() for copying-moving entire matrices at once
+#include <algorithm>
 
 #include <fstream> // required for parsing matrices from files
 #include <string>
@@ -81,6 +82,8 @@ public:
 		// Allocate memory in a contiguous chunk for the sake of performance
 		_data[0] = new T[rows * cols];
 		for (size_t i = 1; i < rows; ++i) _data[i] = _data[i - 1] + cols;
+
+		// Allocate buffer
 	}
 
 	~CMatrix() {
@@ -94,12 +97,24 @@ public:
 	const size_t& rows;
 	const size_t& cols;
 
-	CMatrix<T>& operator= (const CMatrix<T>& other) {
+	CMatrix<T>& operator= (const CMatrix<T> &other) {
 		// No need to reallocate memory if size does not change
 		if (_rows != other._rows || _cols != other._cols) this->allocate_for_size(other._rows, other._cols);
 
 		// Copy data a single contiguous chunk
 		memcpy(_data[0], other._data[0], sizeof(T) * rows * cols);
+
+		return *this;
+	}
+
+	CMatrix<T>& operator= (CMatrix<T> &&other) noexcept {
+		// No need co copy/move data itself, we can just rewire pointers
+		this->_rows = other._rows;
+		this->_cols = other._cols;
+		this->_data = other._data;
+
+		// Reset pointer for other object so it doesn't destroy our data when going out of scope
+		other._data = nullptr;
 
 		return *this;
 	}
@@ -203,9 +218,6 @@ public:
 
 	void swap_rows(size_t row1, size_t row2) {
 		for (size_t j = 0; j < _cols; ++j) std::swap(_data[row1][j], _data[row2][j]);
-			/// Perhaps swapping pointers would be more efficient, but it complicates deallocation
-			/// as _data[0] is no longer guaranteed to point to the beginning of allocated memory,
-			/// also effect of such swaps on cache utilization should probably be bechmarked for safety
 	}	
 
 	void fill_with_zeroes() {

@@ -13,12 +13,16 @@ template<typename T>
 class QRDecompositionSolver {
 	CMatrix<T> _matrix;
 	CMatrix<T> _b;
-	///CMatrix<T> _Q;
-	///CMatrix<T> _R;
 
 	size_t _N;
 
+	// Save QR decomposition for reuse
+	bool _decomposition_present = false;
+	CMatrix<T> _Q;
+	CMatrix<T> _R;
+
 public:
+	// When system is passed as a singular (N, N + 1) matrix
 	QRDecompositionSolver(const CMatrix<T> &matrix) {
 		// Ensure correct matrix dimensions
 		if (matrix.cols != matrix.rows + 1)
@@ -30,33 +34,44 @@ public:
 		// Allocate matrices
 		_matrix.allocate_for_size(_N, _N);
 		_b.allocate_for_size(_N, 1);
-		///_Q.allocate_for_size(_N, _N);
-		///_R.allocate_for_size(_N, _N);
 
 		// Fill square matrix and column
 		for (size_t i = 0; i < _N; ++i) {
 			memcpy(_matrix[i], matrix[i], sizeof(T) * _N); // copy N elements at once to the square matrix
 			_b[i][0] = matrix[i][_N]; // copy last column to _column
 		}
+	}
 
-		
+	// When system is passed as a (N, N) matrix and a column
+	QRDecompositionSolver(const CMatrix<T>& matrix, const CMatrix<T>& column) {
+		// Ensure correct matrix dimensions
+		if (matrix.rows != matrix.cols || matrix.rows != column.rows)
+			throw std::runtime_error("ERROR: Cannot create linear system with given dimensions.");
+
+		_N = matrix.rows;
+
+		_matrix = matrix;
+		_b = column;
 	}
 
 	// @return 1 => solution
 	// @return 2 => Q
 	// @return 3 => R
-	std::tuple<CMatrix<T>, CMatrix<T>, CMatrix<T>> solve() {
+	CMatrix<T> solve() {
 		// Decompose matrix into QR
 		// Q - orthogonal matrix => Q^-1 == Q^T
 		// R - upper triangular matrix
-		auto [Q, R] = this->QR_decompose();
+		if (!_decomposition_present) {
+			std::tie(_Q, _R) = this->QR_decompose();
+			_decomposition_present = true;
+		}
 
 		// Go from system
 		// Ax = b
 		// To an equivalent system
 		// Rx = Q^T b
-		_matrix = R;
-		_b = Q.get_transposed() * _b;
+		_matrix = _R;
+		_b = _Q.get_transposed() * _b;
 
 		// Check that system matrix isn't singular
 		const T det = this->get_det();
@@ -78,7 +93,31 @@ public:
 			}
 		}
 
-		return { _b, Q, R };
+		return _b;
+	}
+
+	// @return 1 => Q
+	// @return 2 => R
+	std::tuple<const CMatrix<T>&, const CMatrix<T>&> get_QR() const {
+		return { _Q, _R };
+	}
+
+	// When we need to solve multiple systems it's better to reset matrix without reallocating the entire object
+	void reset_right_side(const CMatrix<T>& b) {
+		_b = b;
+	}
+
+	void add_disturbance(T magnitude) {
+		// Add rand[-magnitude, +magnitude] elementwise to the last column 
+		for (size_t i = 0; i < _N; ++i) {
+
+			const T randCoef = static_cast<T>(rand()) / RAND_MAX * 2 - 1; // random value in [-1, 1] range
+			_b[i][0] += magnitude * randCoef;
+		}
+	}
+
+	CMatrix<T> get_b() const {
+		return _b;
 	}
 
 private:

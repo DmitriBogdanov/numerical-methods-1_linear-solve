@@ -72,7 +72,8 @@ private:
 			// Substract current row from the following ones completing the step
 			for (size_t i = k + 1; i < _matrix.rows; ++i) {
 				const T firstElement = _matrix[i][k];
-				this->add_to_row(i, k, -firstElement);
+
+				for (size_t j = k; j < _matrix.cols; ++j) _matrix[i][j] += _matrix[k][j] * firstElement;
 			}
 		}
 	}
@@ -81,8 +82,8 @@ private:
 		// Go backwards until our matrix is diagonal
 		for (size_t k = _matrix.rows - 1; k > 0; --k)
 			for (size_t i = 1; i <= k; ++i) {
-				const T factor = _matrix[k - i][k];
-				for (size_t j = k; j <= _matrix.cols; ++j) _matrix[k - i][j] -= _matrix[k][j] * factor;
+				const T factor = -_matrix[k - i][k];
+				for (size_t j = k; j <= _matrix.cols; ++j) _matrix[k - i][j] += _matrix[k][j] * factor;
 			}
 	}
 
