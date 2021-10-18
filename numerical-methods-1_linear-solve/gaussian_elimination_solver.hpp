@@ -71,7 +71,7 @@ private:
 
 			// Substract current row from the following ones completing the step
 			for (size_t i = k + 1; i < _matrix.rows; ++i) {
-				const T firstElement = _matrix[i][k];
+				const T firstElement = -_matrix[i][k];
 
 				for (size_t j = k; j < _matrix.cols; ++j) _matrix[i][j] += _matrix[k][j] * firstElement;
 			}
@@ -87,10 +87,10 @@ private:
 			}
 	}
 
-	void add_to_row(size_t destRow, size_t sourceRow, T factor) {
-		// Add rows in vector-like fashion: 'destRow += sourceRow * factor'
-		for (size_t j = 0; j < _matrix.cols; ++j) _matrix[destRow][j] += _matrix[sourceRow][j] * factor;
-	}
+	//void add_to_row(size_t destRow, size_t sourceRow, T factor) {
+	//	// Add rows in vector-like fashion: 'destRow += sourceRow * factor'
+	//	for (size_t j = 0; j < _matrix.cols; ++j) _matrix[destRow][j] += _matrix[sourceRow][j] * factor;
+	//}
 
 	size_t find_leading_row(size_t k) {
 		// Select row with the largest 'first' element

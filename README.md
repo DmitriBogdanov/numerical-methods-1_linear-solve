@@ -1,47 +1,52 @@
 # Numerical methods 1 / Linear Solver
 
-Решение СЛАУ методом Гаусса и QR разложения (ортогонализация базиса методом вращений Гивенса), вычисление невязки решений, оценка и вычисление числа обусленности.
+Contains implementations of following methods for solving linear systems:
+* Gaussian elimination
+* QR-Decomposition using Givens rotations
 
-## Компиляция
+Note that present implementations are intended for study and analyzing properties of aforementioned methods, as such they are not meant to be used in any sort of high-performance production code.
 
-* Рекоммендуемый компилятор: MSVC v142
-* Требуется поддержка стандарта C++17
+## Compilation
 
-## config.txt
+* Recommended compiler: MSVC v142
+* Requires C++17 support
+
+## Usage
 
 Для управления программой используется config-файл следующего формата:
 
-* Строка 1: <относительный путь к файлу с матрицей>
-* Строка 2: <относительный путь для файлов с результатами>
-* Строка 3: <число итераций при оценке числа обусловленности>
+Input is a .dat file, containing floating-point matrix that represents any linear system. To configure input file, output path and other parameters, place config file of the following format into the same folder as executable:
 
-## Версии
+* Line 1: [input relative path]
+* Line 2: [output relative path]
+* Line 3: [number of iterations used when estimating condition number]
+
+## Version history
 
 * 00.07
-    * Реализовано непосредственное вычисление числа обусловленности системы
-    * Оптимизировано использование метода QR-разложения при решении систем, отличных только правой частью
+    * Implemented computation of conditional number through its definition
+    * Optimized matrix inverse and condition number estimate methods though the use of QR-decomposition with various right–hand sides 
 
 * 00.06
-    * Добавлено вычисление октаэдрической нормы
+    * Matrix norm function (octahedrical norm)
 
 * 00.05
-    * Реализована оценка числа обусловленности системы
-    * Реализовано вычисление обратной матрицы при помощи решения системы СЛАУ
-
+    * Implemented condition number estimate thorough the use of residuals
+    * Added matrix inverse function as a testing ground for implemeted methods
 * 00.04
-    * Реализована функция QR-разложения с ортогонализацией матрицы методом вращений Гивенса
-    * Реализовано решение СЛАУ при помощи QR-разложения 
+    * Implemented QR-decomposition function (modification using Givens rotations)
+    * Implemented QR-decomposition method for solving linear systems
 
 * 00.03
-    * Добавлена проверка на утечки памяти в режиме debug
+    * Memory leak checking in debug mode
 
 * 00.02
-    * Добавлен вычисления кубической нормы матриц
-    * Добавлен оператор произведения матриц
-    * Добавлен функционал вычисления невязки решений
-    * Реализована запись результатов в файлы
-    * Структурные изменения
-    * Оптимизации
+    * Matrix norm function (cubic norm)
+    * Implemented matrix arithmetic operators
+    * Added functionality of calculating solution residuals
+    * All results are now saved as .dat files
+    * Structural changes
+    * Optimizations
 
 * 00.01
-    * Реализован метод Гаусса
+    * Implemented Gaussian elimination
