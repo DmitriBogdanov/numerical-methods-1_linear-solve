@@ -1,7 +1,7 @@
 # Numerical methods 1 / Linear Solver
 
 Contains implementations of following methods for solving linear systems:
-* Gaussian elimination
+* Gaussian Elimination
 * QR-Decomposition using Givens rotations
 
 Note that present implementations are intended for study and analyzing properties of aforementioned methods, as such they are not meant to be used in any sort of high-performance production code.
@@ -12,8 +12,6 @@ Note that present implementations are intended for study and analyzing propertie
 * Requires C++17 support
 
 ## Usage
-
-Для управления программой используется config-файл следующего формата:
 
 Input is a .dat file, containing floating-point matrix that represents any linear system. To configure input file, output path and other parameters, place config file of the following format into the same folder as executable:
 
@@ -31,8 +29,9 @@ Input is a .dat file, containing floating-point matrix that represents any linea
     * Matrix norm function (octahedrical norm)
 
 * 00.05
-    * Implemented condition number estimate thorough the use of residuals
+    * Implemented condition number estimate through the use of residuals
     * Added matrix inverse function as a testing ground for implemeted methods
+
 * 00.04
     * Implemented QR-decomposition function (modification using Givens rotations)
     * Implemented QR-decomposition method for solving linear systems
@@ -49,4 +48,4 @@ Input is a .dat file, containing floating-point matrix that represents any linea
     * Optimizations
 
 * 00.01
-    * Implemented Gaussian elimination
+    * Implemented Gaussian Elimination
